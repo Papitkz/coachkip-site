@@ -18,9 +18,16 @@ app.use(pinia);
 app.use(Vuetify);
 app.use(createHead()); // Use @vueuse/head
 
+// Define gtag function for convenience
+function gtag(...args) {
+  if (window.gtag) {
+    window.gtag(...args);
+  }
+}
+
 app.mount('#app');
 
-// Optional: legacy method for updating title/meta if not using <useHead> per page
+// Update route meta info and send GA pageview
 router.afterEach((to) => {
   if (to.meta.title) {
     document.title = to.meta.title;
@@ -29,5 +36,13 @@ router.afterEach((to) => {
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) {
     metaDescription.setAttribute('content', to.meta.description || '');
+  }
+
+  // Send pageview to GA
+  if (typeof gtag === 'function') {
+    gtag('event', 'page_view', {
+      page_title: document.title,
+      page_path: to.fullPath,
+    });
   }
 });
